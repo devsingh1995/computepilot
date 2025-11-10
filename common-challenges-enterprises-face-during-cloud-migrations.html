@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>10 Cloud Migration Challenges and How to Avoid Them</title>
+  <meta name="description" content="Practical enterprise guide to plan migration, control cost, cut downtime, and handle data transfer, compliance, security, and change management with checklists.">
+
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="vendors/prism/prism.css" rel="stylesheet">
+    <link href="vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/theme.css" rel="stylesheet" />
+    <link href="assets/css/user.css" rel="stylesheet" />
+
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container"><a class="navbar-brand" href="index.html"><img src="assets/img/Logo.png" alt="" /></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa-solid fa-bars text-white fs-3"></i></button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 text-uppercase">
+              <li class="nav-item"><a class="nav-link active" aria-current="page" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Cloud</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">GPU</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Compute</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+     
+
+            <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section>
+
+        <div class="container">
+          <div class="border-bottom border-dark py-7">
+            <!-- <h1 class="text-center fs-lg-7 fs-md-4 fs-3 text-dark mb-5">Thoughts and words</h1> -->
+            <div class="row align-items-center gx-xl-7">
+              <div class="col-lg-10 text-center"><a href="#"><img class="img-fluid" src="assets/img/blog/cloud-migration.jpg" alt="" /></a></div>
+              <div class="col-lg-12 mt-5 mt-lg-0 text-center text-lg-start">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3"><a href="#">
+                    <p class="fw-bold mb-0 text-black">CLOUD</p>
+                  </a>
+                  <p class="mb-0">Nov 11, 2025</p>
+                </div><a href="#">
+                  <h1 class="fs-xl-6 fs-md-4 fs-3 my-3">10 Cloud Migration Challenges and How to Avoid Them</h1>
+                </a>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2"><img class="img-fluid rounded-circle" src="assets/img/blog/profile2.png" alt="" /><p class="mb-0">Daya S</p></div>
+                <p>I&rsquo;ve helped move stacks that looked neat on a whiteboard and then fought us every step in prod. The pattern is familiar. Week 1 feels smooth. By week 6 you&rsquo;re juggling cutover windows, DNS timers, tagging rules, and a CFO asking why the first month&rsquo;s bill tripled. This piece is the version I wish someone handed me before my first large move.</p>
+                <p>I&rsquo;ll walk through the problems you actually hit, why they happen, and what we did that worked. No fluff. Trade-offs called out.</p>
+                <h2><strong>Why cloud migrations still derail in 2025</strong></h2>
+                <p>The migration is not just a copy job. You are changing where compute lives, how apps talk, who holds keys, how logs flow, and who owns costs. Most failures come from trying to move too much while also changing how teams work. The fix is less glamorous: a small pilot, a boring landing zone, and a clean wave plan.</p>
+                <h2><strong>1) Fuzzy strategy and stakeholder misalignment</strong></h2>
+                <p><strong>What it looks like in real life</strong></p>
+                <p>Kickoff slides say rehost now, refactor later. Nobody comes back for the refactor. Infra wants standard images, security wants private subnets, product wants to go fast, finance wants a forecast. The steering group meets monthly, so decisions pile up. By the time someone asks for a target architecture, half the apps already moved.</p>
+                <p><strong>What we changed</strong></p>
+                <p>We wrote a one page spec per portfolio. Three sections only: why we&rsquo;re moving, the first target state, and the rules we will not break. Examples of rules: every workload tags owner, env, cost_center; no public subnets for stateful services; secrets only in the manager, never in env vars. We grouped apps by blast radius and coupling instead of org chart. Then we chose per app patterns: rehost the legacy reporting job, replatform the customer API to managed DB, freeze and retire the old FTP box.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>You will leave some savings on the table if you rehost first. You will probably ship on time. Decide which one matters more this quarter and write it down so nobody forgets.</p>
+                <h2><strong>2) Hidden dependencies and weak wave planning</strong></h2>
+                <p><strong>The day it breaks</strong></p>
+                <p>We once moved a &ldquo;standalone&rdquo; invoice service. During cutover, latency jumped. Turned out a nightly cron on a different host hit a private endpoint for tax rules. That host never moved, so traffic went across a VPN link with low throughput. We rolled back at 2 a.m. and ate the cost.</p>
+                <p><strong>What we do now</strong></p>
+                <p>We pull call graphs from APM for 2 weeks before any move. We export flow logs and look for chatty pairs. We make a simple SBOM for each app: inbound calls, outbound calls, batch jobs, queues, fileshares, and who owns each. The wave plan follows the network, not the org. Things that talk a lot move together. Things with wide fan-out get their own window. If an app crosses trust boundaries, it gets a rehearsal with production-sized data.</p>
+                <p><strong>Checklist snippet</strong></p>
+                <ul>
+                <li>Dependency diagram reviewed with the teams that own the neighbors</li>
+                </ul>
+                <ul>
+                <li>DNS names listed and their TTLs lowered 48 hours before cutover</li>
+                </ul>
+                <ul>
+                <li>Batch jobs moved or paused with a signed plan</li>
+                </ul>
+                <ul>
+                <li>Backout path tested and timed</li>
+                </ul>
+                <h2><strong>3) Downtime and business disruption</strong></h2>
+                <p><strong>Typical failure path</strong></p>
+                <p>Teams test the target environment but not the moment of switch. TTLs are still 3600 seconds. Warm caches blow up the first hour. The maintenance window is too short because nobody timed the cold start. This is where dashboards go red and you get on a bridge.</p>
+                <p><strong>What works</strong></p>
+                <p>Blue green or canary. Script the traffic switch. Lower TTLs to 60 seconds two days before. Mirror a slice of prod traffic to the blue path during the dress rehearsal and watch error ratios. Prewarm caches. Prime read replicas. For any risky move, we keep a backout runbook that a different engineer executes during rehearsal. The goal is muscle memory, not a pretty wiki page.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Canary adds plumbing and time but saves your sleep. If leadership wants less prep, show them how long TTL waits feel when revenue is on the line.</p>
+                <h2><strong>4) Security, compliance, and shared responsibility gaps</strong></h2>
+                <p><strong>How teams get burned</strong></p>
+                <p>New accounts spin up without guardrails. Someone opens a security group to 0.0.0.0 because the app did not start. Root accounts lack MFA. Secrets live in plaintext inside user data scripts. Logging is per team, so audit trails are incomplete. During the first posture scan, you find public buckets and over-privileged roles.</p>
+                <p><strong>What we do before day 1 migrations</strong></p>
+                <p>We stand up a landing zone first. Org structure with separate accounts or subscriptions for prod, nonprod, and shared services. Identity through SSO with short-lived roles. Central logging that nobody can delete. Default deny on network edges. Baseline policies for least privilege. KMS for storage, secret manager for credentials only. If a pipeline tries to deploy a resource that breaks a guardrail, it fails. No exceptions.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Guardrails feel heavy at first. They save you from a week of incident response later.</p>
+                <p><strong>Suggested Read: <a href="https://acecloud.ai/blog/cloud-migration-strategies/">Cloud Migration Guide: Strategies, Types &amp; Best Practices</a></strong></p>
+                <h2><strong>5) Cloud cost shocks and weak FinOps</strong></h2>
+                <p><strong>The first bill story</strong></p>
+                <p>A month after the first wave, finance pings. Spend tripled. You find dozens of m5.2xlarge instances at 4 percent CPU, gp3 volumes sized for the old SAN, snapshots with no lifecycle policy, and half the resources missing tags. Data egress jumps because two chatty services ended up in different zones.</p>
+                <p><strong>What changed our curve</strong></p>
+                <p>We model cost per app before we move it. Not perfect, just enough to catch egress, storage class, and instance family choices. We gate deployments on tags. No tag, no deploy. We enable budgets and alerts by tag and send them to the team channel. We rightsize within two weeks of landing. Autoscaling for stateless services. Schedules to shut down nonprod at night. We wait one or two billing cycles before we commit to savings plans. Then we commit hard once the pattern is stable.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Right away commitments look tempting. If the shape of your workload is still moving, wait. You can still save, just a month later.</p>
+                <h2><strong>6) Data migration complexity and integrity issues</strong></h2>
+                <p><strong>Where time disappears</strong></p>
+                <p>Code moves fast. Data takes the weekend. Large tables with long indexes. CDC that lags under load. Triggers you forgot were there. The scary part is not slowness. It is silent drift. Primary keys that don&rsquo;t match. A single field with a new collation. That kind of bug lingers for months.</p>
+                <p><strong>How we keep our weekends</strong></p>
+                <p>We classify datasets by volume and churn. Cold historical data moves offline. Hot transactional data uses CDC with a clean cut window. For big tables we create secondary indexes after the bulk load, not during. We validate with checksums or row counts on both sides. If checks fail, we fail fast and back out. For high risk databases, we run one full dress rehearsal with production scale. We time the longest step and add 30 percent buffer.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>CDC and dual writes are extra code and risk. For systems with tight RTO you will need them. Keep the window as short as you can and design for a short read-only period if your business can take it.</p>
+                <h2><strong>7) Skills gaps and change management</strong></h2>
+                <p><strong>How it shows up</strong></p>
+                <p>Infra folks know on-prem cold but get tripped up by identity federation and policy-as-code. App teams can dockerize but skip health checks and graceful shutdown. On-call inherits a stack with new knobs but the runbooks still talk about a data center. CI allows someone to bypass checks because it is blocking a feature.</p>
+                <p><strong>What worked better</strong></p>
+                <p>We built paved paths. Golden modules for VPCs, clusters, queues, databases, and autoscaling groups with sane defaults. We paired each product team with a platform engineer for the first wave. We wrote SRE runbooks focused on day 2: rotate a key, roll a node group, drill a failover, cut a cost spike. Training was attached to real deliverables. Finish the lab, then cut over a low risk service using the same steps.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Golden paths feel constraining. They let small teams move faster because decisions repeat less and guardrails live in code, not meetings.</p>
+                <h2><strong>8) Vendor lock-in, data sovereignty, and exit costs</strong></h2>
+                <p><strong>The regret pattern</strong></p>
+                <p>A year in, new residency rules hit a region. Or a partner wants their data in a different cloud. Egress fees bite. Your team is deep into proprietary services that do not map 1:1 anywhere else. The exit plan is now a project.</p>
+                <p><strong>What we plan up front</strong></p>
+                <p>We pick where portability matters. Containers for app code. Open engines for the data tier when we can. Managed wrappers are fine, but we keep the core portable. We review contracts for termination and egress. We draw a simple data map with residency by dataset and choose regions accordingly. We also write down the exit shape once. Not to execute it, but to see the cost before we make choices we cannot undo.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Abstraction layers can cost performance or features. If your business needs a proprietary service for speed, use it. Just be honest about exit costs and write them into the plan.</p>
+                <h2><strong>9) Performance and latency regression</strong></h2>
+                <p><strong>A sneaky failure</strong></p>
+                <p>Everything is green after the move and yet the app is slower. The root cause is physics. Two chatty services now sit in different regions. Or you picked burstable volumes that hit credits during peak. Or a multi-tenant service got noisy neighbors right when you needed steady IOPS.</p>
+                <p><strong>The fixes we reach for</strong></p>
+                <p>Baseline with APM and load tests before you move. Keep those SLOs in a dashboard during cutover. Place chatty services close. Use placement groups when low latency inside the region matters. Choose provisioned IOPS for hot paths and size them with evidence. Add a CDN for static assets. Use caches for slow reads. Add connection pooling. Run synthetic checks from your users&rsquo; geos so you see their latency, not yours.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Provisioned IOPS and larger instances cost more. If the SLO is hard, pay for the floor you need and save later with rightsizing once you see real load.</p>
+                <h2><strong>10) Weak governance, landing zone, and observability</strong></h2>
+                <p><strong>How it bites</strong></p>
+                <p>One giant account for everything. Peering webs that nobody understands. Half the logs live inside app repos. Alerts go to a shared mailbox nobody checks at night. Auditors ask for an evidence trail and you stitch logs from five places.</p>
+                <p><strong>What we standardize</strong></p>
+                <p>We use multiple accounts or subscriptions by default. Network segmentation and a shared services enclave. Identity through SSO and groups, not local users. Logging, metrics, and traces go to one plane that product teams can read but not delete. Pipelines enforce policies. If a stack lacks telemetry, it does not deploy.</p>
+                <p><strong>Trade-off</strong></p>
+                <p>Centralized observability costs and needs care. It also turns incidents into learning, not guesswork.</p>
+                <h2><strong>A phased playbook that stays boring</strong></h2>
+                <p>Boring is good. When a migration looks exciting, it usually means something is on fire.</p>
+                <p><strong>Phase 0. Discover and make the case</strong>&nbsp;<br /> Inventory apps, owners, dependencies, data classes, and costs. Decide the why. Pick three success metrics you can measure.</p>
+                <p><strong>Phase 1. Landing zone and guardrails</strong>&nbsp;<br /> Identity, network, logging, encryption, and policy. Tagging standard. Budget alerts. Tested in code. No manual snowflakes.</p>
+                <p><strong>Phase 2. Pilot wave</strong>&nbsp;<br /> Pick two or three apps that represent different shapes. Rehearse cutover. Measure SLOs, cost, and on-call load.</p>
+                <p><strong>Phase 3. Move factory</strong>&nbsp;<br /> Create a repeatable wave cadence. Every week or two, another slice. Standard checklist. Security, cost, and performance gates. Weekly decision log.</p>
+                <p><strong>Phase 4. Decommission and improve</strong>&nbsp;<br /> Turn off the old. Rightsize. Add commitments. Tune backups. Run a DR drill. Close the loop with finance and security.</p>
+                <h2><strong>Tooling we actually used</strong></h2>
+                <ul>
+                <li>Discovery and planning: APM tracers, flow logs, simple graph exports, spreadsheets for SBOMs</li>
+                </ul>
+                <ul>
+                <li>Migration: database migration services for bulk and CDC, file transfer for blobs, runbook automation for cutovers</li>
+                </ul>
+                <ul>
+                <li>Governance: policy as code, org policies, secret manager, KMS, central logging</li>
+                </ul>
+                <ul>
+                <li>FinOps: budgets, tag compliance checks in CI, rightsizing reports, commitment planners</li>
+                </ul>
+                <ul>
+                <li>Observability: metrics, logs, traces, and synthetics tied to SLO dashboards</li>
+                </ul>
+                <p>None of these matter if nobody looks. Assign owners and alerts.</p>
+                <h2><strong>A one page checklist we copy into every runbook</strong></h2>
+                <ul>
+                <li>Success metrics and rollback criteria written and accepted</li>
+                </ul>
+                <ul>
+                <li>Landing zone live. Guardrails enforced in pipelines</li>
+                </ul>
+                <ul>
+                <li>Owners listed with on-call schedule for the window</li>
+                </ul>
+                <ul>
+                <li>Dependencies mapped and neighbors informed</li>
+                </ul>
+                <ul>
+                <li>DNS TTLs lowered to 60 seconds 48 hours prior</li>
+                </ul>
+                <ul>
+                <li>Cutover rehearsed. Backout run by a different engineer</li>
+                </ul>
+                <ul>
+                <li>Data plan selected. Checksums or counts validated. CDC lag within target</li>
+                </ul>
+                <ul>
+                <li>SLO dashboards live and green. Alert routes tested</li>
+                </ul>
+                <ul>
+                <li>Tags present on all resources. Budgets and alerts active by tag</li>
+                </ul>
+                <ul>
+                <li>Secrets in the manager. Root account protected. Break glass documented</li>
+                </ul>
+                <h2><strong>When to pause and rethink scope</strong></h2>
+                <p>We called time out when pilot SLOs missed without a clean fix, when residency rules blocked a region, or when the TCO model went upside down after the first month. Sometimes the right answer was hybrid for a while. Sometimes we stopped and refactored before another move. A smaller, cleaner scope beats a heroic save.</p>
+                <h3><strong>Bottom line</strong></h3>
+                <p>Good migrations are a little dull. They ship in small waves. They rehearse. They write down rules and stick to them. They spend a bit more time on the landing zone and a bit less time arguing about instance sizes. If you want a second set of eyes on your wave plan or guardrails, share them. I&rsquo;ll mark them up with the first three things I&rsquo;d fix and where you can save a month.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+
+     
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+
+
+
+    <!-- ============================================-->
+    <!-- <section> begin ============================-->
+    <section class="pt-0 bg-dark">
+
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col-lg-6 col-sm-12"><a href="index.html"><img class="img-fluid mt-5 mb-4" src="assets/img/Logo.png" alt="" /></a>
+            <p class="w-lg-75 text-gray">Empowering Your Cloud & GPU Journey</p>
+            <p class="text-gray">All rights reserved.</p>
+          </div>
+          <!-- <div class="col-lg-6 col-sm-4 text-right text-white">
+            <h3 class="fw-bold fs-1 mt-5 mb-4 tex">Landings</h3>
+            <ul class="list-unstyled">
+              <li class="my-3 col-md-4"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Products</a></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+          <!-- <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Company</h3>
+            <ul class="list-unstyled">
+              <li class="my-3"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Careers</a><span class="py-1 px-2 rounded-2 bg-success fw-bold text-dark ms-2">Hiring!</span></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Resources</h3>
+            <ul class="list-unstyled">
+              <li class="mb-3"><a href="#">Home</a></li>
+              <li class="mb-3"><a href="#">Products</a></li>
+              <li class="mb-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+        </div>
+        
+      </div>
+      <!-- end of .container-->
+
+    </section>
+    <!-- <section> close ============================-->
+    <!-- ============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="vendors/popper/popper.min.js"></script>
+    <script src="vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="vendors/anchorjs/anchor.min.js"></script>
+    <script src="vendors/is/is.min.js"></script>
+    <script src="vendors/fontawesome/all.min.js"></script>
+    <script src="vendors/lodash/lodash.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+    <script src="vendors/prism/prism.js"></script>
+    <script src="vendors/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
+
+  </body>
+
+</html>
