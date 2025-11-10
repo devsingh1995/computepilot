@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Understanding Latency and Throughput: Getting the Most Out of Your GPU for Inference</title>
+  <meta name="description" content="See how latency and throughput affect UX and cost. Tune batching, concurrency, precision, and autoscaling to get more from your GPUs.">
+
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="vendors/prism/prism.css" rel="stylesheet">
+    <link href="vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/theme.css" rel="stylesheet" />
+    <link href="assets/css/user.css" rel="stylesheet" />
+
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container"><a class="navbar-brand" href="index.html"><img src="assets/img/Logo.png" alt="" /></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa-solid fa-bars text-white fs-3"></i></button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 text-uppercase">
+              <li class="nav-item"><a class="nav-link active" aria-current="page" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Cloud</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">GPU</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Compute</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+     
+
+            <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section>
+
+        <div class="container">
+          <div class="border-bottom border-dark py-7">
+            <!-- <h1 class="text-center fs-lg-7 fs-md-4 fs-3 text-dark mb-5">Thoughts and words</h1> -->
+            <div class="row align-items-center gx-xl-7">
+              <div class="col-lg-10 text-center"><a href="#"><img class="img-fluid" src="assets/img/blog/gpu-latency.jpg" alt="" /></a></div>
+              <div class="col-lg-12 mt-5 mt-lg-0 text-center text-lg-start">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3"><a href="#">
+                    <p class="fw-bold mb-0 text-black">GPU</p>
+                  </a>
+                  <p class="mb-0">Nov 11, 2025</p>
+                </div><a href="#">
+                  <h1 class="fs-xl-6 fs-md-4 fs-3 my-3">Understanding GPU Latency and Throughput for Inference </h1>
+                </a>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2"><img class="img-fluid rounded-circle" src="assets/img/blog/profile2.png" alt="" /><p class="mb-0">Daya S</p></div>
+                <p>If you&rsquo;re serving LLMs, you live between two forces: users want the first token now; finance wants more tokens per second per dollar.&nbsp;</p>
+                <p>Those pull in opposite directions. This post gives you a practical, field-tested way to tune <strong>GPU inference latency and throughput</strong> without throwing your p95 into the sun.&nbsp;</p>
+                <p>We&rsquo;ll start on a single GPU, then talk about scaling out, and finish with copy‑paste presets you can deploy today.</p>
+                <h2><strong>Latency vs throughput: the real trade</strong></h2>
+                <p>Push throughput with bigger batches and higher concurrency and tail latency creeps up. Squeeze latency, and your GPU idles. There&rsquo;s no magic setting that wins both. You set an SLO, you measure, and you nudge knobs until the curves look sane.</p>
+                <h3><strong>The metrics that matter</strong></h3>
+                <ul>
+                <li><strong>TTFT (time to first token):</strong> the wait before any output. Users feel this hardest.</li>
+                </ul>
+                <ul>
+                <li><strong>Inter‑token latency:</strong> the cadence of streaming tokens after the first.</li>
+                </ul>
+                <ul>
+                <li><strong>Request throughput:</strong> completed requests per second (QPS).</li>
+                </ul>
+                <ul>
+                <li><strong>Token throughput:</strong> output tokens per second. Best for cost math.</li>
+                </ul>
+                <ul>
+                <li><strong>p50/p95/p99:</strong> median and tails. Your SLO usually hangs on p95.</li>
+                </ul>
+                <h3><strong>Prefill vs decode</strong></h3>
+                <p>Every request has two phases. <strong>Prefill</strong> eats your whole prompt to produce the first token. That&rsquo;s where TTFT lives and where long prompts hurt. <strong>Decode</strong> generates one token at a time, where GPUs often underutilize unless you keep multiple sequences in flight.</p>
+                <h2><strong>Single‑GPU tuning: start simple, add pressure slowly</strong></h2>
+                <p>You&rsquo;ll move faster if you get a clean baseline, then add complexity to one lever at a time.</p>
+                <h3><strong>Baseline for low latency</strong></h3>
+                <p>Run one model instance, request concurrency 1, batching off. Capture TTFT p50/p95 and inter‑token cadence. This is your &ldquo;feel good&rdquo; reference for chat UX.</p>
+                <h3><strong>Batch size and request concurrency</strong></h3>
+                <p>Batching is the quickest path to more tokens/sec. It also adds queueing delay and mixes short prompts with long ones.</p>
+                <p><strong>How to ramp:</strong></p>
+                <ol>
+                <li>Increase <strong>request concurrency</strong> until decode utilization sits around 85&ndash;90%.</li>
+                </ol>
+                <ol>
+                <li>Raise <strong>batch size</strong> in small steps. Watch p95 TTFT and stop when it breaks your SLO.</li>
+                </ol>
+                <ol>
+                <li>If prefill dominates TTFT, cap input lengths or use chunked prefill.</li>
+                </ol>
+                <h3><strong>KV cache math (worth five minutes)</strong></h3>
+                <p>KV cache eats VRAM fast as you grow context or batch size. A back‑of‑the‑envelope for decoder‑only models:</p>
+                <ul>
+                <li>Per token per layer stores <strong>keys</strong> and <strong>values</strong> of size num_heads &times; head_dim, times dtype_bytes.</li>
+                </ul>
+                <ul>
+                <li>So per token per layer bytes &asymp; num_heads &times; head_dim &times; 2 &times; dtype_bytes.</li>
+                </ul>
+                <ul>
+                <li>Multiply by <strong>layers</strong> and by <strong>tokens in context</strong> (input + generated kept in cache), then by <strong>batch size</strong>.</li>
+                </ul>
+                <p>Example: 32 layers, 32 heads, head_dim 128, FP16 (2 bytes). Per token per layer &asymp; 32 &times; 128 &times; 2 &times; 2 = 16,384 B. Times 32 layers &asymp; <strong>524 KB per token</strong>. An 8k context is ~4.0 GB of KV cache for a single sequence. Double your batch, double that memory. If you overcommit, evictions or preemption will nuke both TTFT and throughput.</p>
+                <h3><strong>Runtime‑specific knobs: vLLM, Triton, KServe</strong></h3>
+                <p>Same mental model, different levers. Map your SLO to these knobs.</p>
+                <h3><strong>vLLM</strong></h3>
+                <ul>
+                <li><strong>Continuous batching:</strong> the scheduler stitches batches between decode steps.</li>
+                </ul>
+                <ul>
+                <li><strong>max_num_seqs / max_num_batched_tokens:</strong> cap how much work enters the scheduler. Lower for interactive, higher for batch.</li>
+                </ul>
+                <ul>
+                <li><strong>Chunked prefill:</strong> split long prompts to smooth TTFT.</li>
+                </ul>
+                <ul>
+                <li><strong>Paged attention:</strong> keeps KV cache compact and reduces OOM risk.</li>
+                </ul>
+                <ul>
+                <li><strong>Speculative decoding:</strong> can cut early token delay; test against accuracy and CPU load.</li>
+                </ul>
+                <h3><strong>vLLM presets</strong></h3>
+                <p><em>Baseline (chat‑friendly):</em></p>
+                <p>--max-num-seqs 4 \</p>
+                <p>--gpu-memory-utilization 0.85 \</p>
+                <p>--enable-chunked-prefill \</p>
+                <p>--max-model-len 8192 \</p>
+                <p>--max-num-batched-tokens 2048</p>
+                <p><em>Throughput push (batch scoring):</em></p>
+                <p>--max-num-seqs 32 \</p>
+                <p>--gpu-memory-utilization 0.95 \</p>
+                <p>--max-num-batched-tokens 8192 \</p>
+                <p>--speculative-decoding \</p>
+                <p>--kv-transfer-offload-threshold 0 # when using host offload</p>
+                <p><strong>Suggested Read: <a href="How To Choose The Best GPU For AI Inference In 2025">How To Choose The Best GPU For AI Inference In 2025</a></strong></p>
+                <h3><strong>NVIDIA Triton Inference Server</strong></h3>
+                <ul>
+                <li><strong>Dynamic batching:</strong> server builds batches within a short delay window. Great for tokens/sec; tune queue delay carefully.</li>
+                </ul>
+                <ul>
+                <li><strong>instance_group:</strong> multiple model instances per GPU keep SMs busy during decode. Start with 2, test 3&ndash;4 if VRAM allows.</li>
+                </ul>
+                <ul>
+                <li><strong>Concurrent model execution:</strong> let several instances run at once; pair with instance_group to hit your target concurrency.</li>
+                </ul>
+                <p><em>Triton configs</em></p>
+                <p><em>Min‑latency skew (Python backend shown):</em></p>
+                <p>max_batch_size: 0</p>
+                <p>instance_group [{ kind: KIND_GPU, count: 1 }]</p>
+                <p># dynamic_batching omitted (off)</p>
+                <p><em>Max‑throughput skew:</em></p>
+                <p>max_batch_size: 128</p>
+                <p>instance_group [{ kind: KIND_GPU, count: 2 }]</p>
+                <p>dynamic_batching {</p>
+                <p>preferred_batch_size: [8, 16, 32]</p>
+                <p>max_queue_delay_microseconds: 2000</p>
+                <p>}</p>
+                <p># multiple instances enable concurrent execution</p>
+                <h3><strong>KServe (with vLLM runtime)</strong></h3>
+                <ul>
+                <li>Use the <strong>Generative Inference</strong> runtime backed by vLLM.</li>
+                </ul>
+                <ul>
+                <li>Autoscale on the signal that matches your SLO: QPS for batchy traffic, tokens for interactive UX.</li>
+                </ul>
+                <ul>
+                <li>Put a token budget per replica and enforce a small queue with early reject to protect p95 during spikes.</li>
+                </ul>
+                <h2><strong>Measure honestly or the knobs will lie</strong></h2>
+                <p>Consistent benchmarks beat big numbers. Fix your inputs and run long enough for stable tails.</p>
+                <h3><strong>Tooling and setup</strong></h3>
+                <ul>
+                <li>Use a single client tool end‑to‑end that reports TTFT, inter‑token latency, request throughput, and tokens/sec.</li>
+                </ul>
+                <ul>
+                <li>Fix <strong>prompt length</strong> and <strong>max new tokens</strong>. Warm up each config before measuring.</li>
+                </ul>
+                <ul>
+                <li>Run enough duration to collect stable p95/p99; burst tests need longer runs.</li>
+                </ul>
+                <h3><strong>Load shapes you should test</strong></h3>
+                <ul>
+                <li><strong>Steady QPS:</strong> good for capacity planning.</li>
+                </ul>
+                <ul>
+                <li><strong>Bursty:</strong> mirrors frontend surges. Watch TTFT spikes and queue growth.</li>
+                </ul>
+                <ul>
+                <li><strong>Long‑context spikes:</strong> if your app allows 4k&ndash;32k tokens, include it. That&rsquo;s where caches get messy.</li>
+                </ul>
+                <h3><strong>Reading the curves</strong></h3>
+                <ul>
+                <li>Sawtooth TTFT patterns usually mean cache eviction or scheduler thrash.</li>
+                </ul>
+                <ul>
+                <li>High GPU idle during decode suggests you need more sequences in flight (raise batch/concurrency or add instances).</li>
+                </ul>
+                <ul>
+                <li>Flat tokens/sec with rising TTFT under burst means you&rsquo;re throughput‑bound but violating SLO; cap batches or add replicas.</li>
+                </ul>
+                <h2><strong>Playbooks you can ship</strong></h2>
+                <p>Pick the one closest to your app and tweak from there.</p>
+                <h3><strong>Chat UX (interactive)</strong></h3>
+                <ul>
+                <li><strong>Goal:</strong> first token under ~300&ndash;600 ms p95 and smooth streaming.</li>
+                </ul>
+                <ul>
+                <li><strong>Settings:</strong> 1&ndash;2 small model instances, low concurrency, batching off (Triton) or low max_num_seqs (vLLM). Turn on chunked prefill. Trim prompts with summaries or RAG.</li>
+                </ul>
+                <ul>
+                <li><strong>Watch:</strong> p95 under burst, inter‑token jitter, KV headroom.</li>
+                </ul>
+                <h3><strong>Batch scoring / offline jobs</strong></h3>
+                <ul>
+                <li><strong>Goal:</strong> maximum tokens/sec per GPU.</li>
+                </ul>
+                <ul>
+                <li><strong>Settings:</strong> large batches, high concurrency, aggressive continuous batching. Speculative decoding optional. Longer timeouts are fine.</li>
+                </ul>
+                <ul>
+                <li><strong>Watch:</strong> GPU saturation, memory use, tokens/sec per dollar.</li>
+                </ul>
+                <h3><strong>Streaming APIs</strong></h3>
+                <ul>
+                <li><strong>Goal:</strong> early token plus steady cadence.</li>
+                </ul>
+                <ul>
+                <li><strong>Settings:</strong> mid‑range concurrency, small‑to‑medium batches. Speculative decoding can help first‑token delay. Add backpressure if downstream is slow.</li>
+                </ul>
+                <ul>
+                <li><strong>Watch:</strong> jitter and server CPU (it matters at high QPS).</li>
+                </ul>
+                <h2><strong>Scaling out without wrecking p95</strong></h2>
+                <p>When one GPU isn&rsquo;t enough, expand carefully and keep the SLO intact.</p>
+                <h3><strong>Multi‑instance and MIG</strong></h3>
+                <p>Multiple small instances per GPU can lift decode utilization. MIG slices isolate tenants and noisy neighbors, but you give up shared cache and some flexibility. Good for reliability, not always for peak tokens/sec.</p>
+                <h3><strong>Multi‑GPU and distributed serving</strong></h3>
+                <p>Shard when the model or context window doesn&rsquo;t fit. Start with sequence parallelism. Expect a throughput win with a small latency tax from cross‑GPU comms.</p>
+                <h3><strong>Routing and rate limits</strong></h3>
+                <p>Put a token‑aware gateway in front. Budget in‑flight tokens per replica and reject early beyond that. That&rsquo;s how you guard p95 during traffic spikes.</p>
+                <h2><strong>Quick reference cheatsheet</strong></h2>
+                <p>Use these as starting points. Measure, then adjust.</p>
+                <p><strong>vLLM (chat baseline)</strong></p>
+                <p>--max-num-seqs 4 \</p>
+                <p>--gpu-memory-utilization 0.85 \</p>
+                <p>--enable-chunked-prefill \</p>
+                <p>--max-model-len 8192 \</p>
+                <p>--max-num-batched-tokens 2048</p>
+                <p><strong>vLLM (throughput push)</strong></p>
+                <p>--max-num-seqs 32 \</p>
+                <p>--gpu-memory-utilization 0.95 \</p>
+                <p>--max-num-batched-tokens 8192 \</p>
+                <p>--speculative-decoding</p>
+                <p><strong>Triton (min‑latency)</strong></p>
+                <p>max_batch_size: 0</p>
+                <p>instance_group [{ kind: KIND_GPU, count: 1 }]</p>
+                <p><strong>Triton (max‑throughput)</strong></p>
+                <p>max_batch_size: 128</p>
+                <p>instance_group [{ kind: KIND_GPU, count: 2 }]</p>
+                <p>dynamic_batching {</p>
+                <p>preferred_batch_size: [8, 16, 32]</p>
+                <p>max_queue_delay_microseconds: 2000</p>
+                <p>}</p>
+                <h2><strong>Wrap up</strong></h2>
+                <p>Pick one preset that matches your SLO. Run a clean baseline with fixed prompt and output lengths. Change one knob at a time. Plot TTFT p95 and tokens/sec together.&nbsp;</p>
+                <p>If your app cares about feel, cap batches and keep concurrency tight. If it cares about cost, batch harder until p95 says stop.&nbsp;</p>
+                <p>That&rsquo;s the job you&rsquo;ll do most weeks, and now you&rsquo;ve got a map.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+
+     
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+
+
+
+    <!-- ============================================-->
+    <!-- <section> begin ============================-->
+    <section class="pt-0 bg-dark">
+
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col-lg-6 col-sm-12"><a href="index.html"><img class="img-fluid mt-5 mb-4" src="assets/img/Logo.png" alt="" /></a>
+            <p class="w-lg-75 text-gray">Empowering Your Cloud & GPU Journey</p>
+            <p class="text-gray">All rights reserved.</p>
+          </div>
+          <!-- <div class="col-lg-6 col-sm-4 text-right text-white">
+            <h3 class="fw-bold fs-1 mt-5 mb-4 tex">Landings</h3>
+            <ul class="list-unstyled">
+              <li class="my-3 col-md-4"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Products</a></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+          <!-- <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Company</h3>
+            <ul class="list-unstyled">
+              <li class="my-3"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Careers</a><span class="py-1 px-2 rounded-2 bg-success fw-bold text-dark ms-2">Hiring!</span></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Resources</h3>
+            <ul class="list-unstyled">
+              <li class="mb-3"><a href="#">Home</a></li>
+              <li class="mb-3"><a href="#">Products</a></li>
+              <li class="mb-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+        </div>
+        
+      </div>
+      <!-- end of .container-->
+
+    </section>
+    <!-- <section> close ============================-->
+    <!-- ============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="vendors/popper/popper.min.js"></script>
+    <script src="vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="vendors/anchorjs/anchor.min.js"></script>
+    <script src="vendors/is/is.min.js"></script>
+    <script src="vendors/fontawesome/all.min.js"></script>
+    <script src="vendors/lodash/lodash.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+    <script src="vendors/prism/prism.js"></script>
+    <script src="vendors/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
+
+  </body>
+
+</html>
