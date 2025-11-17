@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Avoid These Block Storage Snapshot Mistakes</title>
+  <meta name="description" content="Running several tasks on a single GPU? Explore proven strategies to enhance performance, minimize latency, and maximize resource utilization.">
+
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="vendors/prism/prism.css" rel="stylesheet">
+    <link href="vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/theme.css" rel="stylesheet" />
+    <link href="assets/css/user.css" rel="stylesheet" />
+
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container"><a class="navbar-brand" href="index.html"><img src="assets/img/Logo.png" alt="" /></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa-solid fa-bars text-white fs-3"></i></button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 text-uppercase">
+              <li class="nav-item"><a class="nav-link active" aria-current="page" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Cloud</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">GPU</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Compute</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+     
+
+            <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section>
+
+        <div class="container">
+          <div class="border-bottom border-dark py-7">
+            <!-- <h1 class="text-center fs-lg-7 fs-md-4 fs-3 text-dark mb-5">Thoughts and words</h1> -->
+            <div class="row align-items-center gx-xl-7">
+              <div class="col-lg-10 text-center"><a href="#"><img class="img-fluid" src="assets/img/blog/avoid-these-block-storage-snapshot-mistakes.jpg" alt="" /></a></div>
+              <div class="col-lg-12 mt-5 mt-lg-0 text-center text-lg-start">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3"><a href="#">
+                    <p class="fw-bold mb-0 text-black">Storage</p>
+                  </a>
+                  <p class="mb-0">Nov 17, 2025</p>
+                </div><a href="#">
+                  <h1 class="fs-xl-6 fs-md-4 fs-3 my-3">Common Mistakes When Taking Block Storage Snapshots (and How to Avoid Them)</h1>
+                </a>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2"><img class="img-fluid rounded-circle" src="assets/img/blog/profile2.png" alt="" /><p class="mb-0">Daya S</p></div>
+                <p>Snapshots feel simple: click, done, safe. Reality: small missteps lead to corrupt restores, slow volumes, or runaway costs. Here&rsquo;s a straight, fix-first guide you can run in production.</p>
+                <h2><strong>1) Treating crash-consistent as application-consistent</strong></h2>
+                <p><strong>The mistake:</strong> Taking a snapshot while apps keep writing and assuming it&rsquo;s clean.<br /><strong>Why it bites:</strong> Crash-consistent means &ldquo;as if the power plug was pulled.&rdquo; Databases may recover, but you&rsquo;re gambling on WAL/binlogs. Windows uses VSS for app-consistent backups; on Linux you need quiesce hooks (fsfreeze or app scripts). Azure Backup coordinates VSS for Windows VMs; AWS Backup/SSM can run pre/post steps; Linux has fsfreeze.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>Windows: enable VSS in your backup job.</li>
+                <li>Linux: run pre/post scripts to flush and freeze I/O; unfreeze after the snapshot call returns.</li>
+                <li>Prefer your cloud&rsquo;s &ldquo;application-consistent&rdquo; options where available.</li>
+                </ul>
+                <h2><strong>2) Snapshotting multi-disk apps one disk at a time</strong></h2>
+                <p><strong>The mistake:</strong> DB data on one disk, logs on another, and you snapshot them separately.<br /><strong>Why it bites:</strong> Write ordering breaks; recovery gets messy. Use consistency groups/multi-volume snapshots (AWS) or a machine image when you truly need all disks at the same point.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>AWS: take <strong>multi-volume snapshots</strong> for crash-consistent sets. Automate via DLM.</li>
+                <li>GCP: if you need whole-VM capture, use a <strong>machine image</strong>.</li>
+                </ul>
+                <h2><strong>3) Forgetting DB-level steps before the snapshot</strong></h2>
+                <p><strong>The mistake:</strong> Relying only on filesystem freeze for databases.<br /><strong>Fix:</strong> Pair snapshot with DB hooks: MySQL FLUSH TABLES WITH READ LOCK or your engine&rsquo;s online-backup mechanism; PostgreSQL supports &ldquo;frozen snapshot&rdquo; flows documented upstream. AWS even documents using DLM+SSM for app-consistent EBS snapshots of MySQL/Postgres.</p>
+                <h2><strong>4) Not testing restores&mdash;or pre-warming volumes</strong></h2>
+                <p><strong>The mistake:</strong> You never restore until the outage, then the volume is slow for minutes.<br /><strong>Why it bites:</strong> Many clouds lazy-load data when restoring from snapshots; first reads are slower unless you pre-warm or enable &ldquo;fast restore.&rdquo; On AWS, <strong>Fast Snapshot Restore (FSR)</strong> avoids the cold-read penalty. GCP documents restore limits and best practices for creating disks from snapshots.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>Enable FSR on snapshots you&rsquo;ll use for RTO-sensitive restores; otherwise run an init/read pass after attach.</li>
+                <li>Add a quarterly restore test to your runbook (measure latency until steady state).</li>
+                </ul>
+                <h2><strong>5) Letting incremental chains grow without a policy</strong></h2>
+                <p><strong>The mistake:</strong> &ldquo;We&rsquo;ll delete old ones later.&rdquo;<br /><strong>Why it bites:</strong> Snapshots are incremental. Deleting one doesn&rsquo;t always drop cost because blocks may be referenced by newer snapshots. Azure and GCP snapshots are also incremental. Plan retention; don&rsquo;t guess.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>Set lifecycle policies: AWS <strong>DLM</strong>; GCP <strong>snapshot schedules</strong>; Azure <strong>Disk Backup</strong> policies.</li>
+                <li>Track spend vs. retained points; prune aggressively once compliance allows.</li>
+                </ul>
+                <h2><strong>6) Ignoring encryption and share-permission gotchas</strong></h2>
+                <p><strong>The mistake:</strong> Sharing an encrypted snapshot but forgetting the KMS key, or copying across Regions without a destination key.<br /><strong>Why it bites:</strong> Recipients can&rsquo;t use the snapshot without key grants. Cross-Region copies often require specifying a key in the destination. Azure managed disk snapshots are encrypted at rest; you can switch to customer-managed keys with a Disk Encryption Set.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>When sharing encrypted EBS snapshots, <strong>share the KMS key</strong> permissions too; for cross-Region copies, supply a Region-valid key.</li>
+                <li>In Azure, decide early between platform-managed and customer-managed keys to avoid later moves that key-scope blocks.</li>
+                </ul>
+                <p>Tip: Read this article to know more about the <a href="https://acecloud.ai/blog/block-storage-vs-object-storage/">difference between Block Storage and Object Storage</a>.</p>
+                <h2><strong>7) Mixing in ephemeral disks and assuming they&rsquo;re protected</strong></h2>
+                <p><strong>The mistake:</strong> Expecting instance-store/ephemeral disks to be in your snapshot.<br /><strong>Reality:</strong> Instance store isn&rsquo;t snapshot-capable and data doesn&rsquo;t persist across stop/terminate. If you must keep it, copy to a persistent disk first.</p>
+                <h2><strong>8) Holding hypervisor/VM snapshots for weeks</strong></h2>
+                <p><strong>The mistake:</strong> Using vSphere VM snapshots as &ldquo;backups.&rdquo;<br /><strong>Why it bites:</strong> Snapshot files grow, chains get long, performance drops, and consolidation can fail. VMware&rsquo;s guidance: keep few snapshots, short-lived, and delete after backups.</p>
+                <h2><strong>9) Snapshotting during heavy write spikes (and tanking performance)</strong></h2>
+                <p><strong>The mistake:</strong> Taking storage-level CoW snapshots while the volume is hot.<br /><strong>Why it bites:</strong> Copy-on-write layers add IO overhead. LVM snapshots under load can degrade reads/writes until the snapshot is removed or COW space is right-sized.</p>
+                <p><strong>Do this instead:</strong></p>
+                <ul>
+                <li>Schedule snapshots off-peak or reduce write pressure briefly (quiesce app, drain queues).</li>
+                <li>Allocate adequate COW space and prune fast.</li>
+                </ul>
+                <h2><strong>10) No region strategy for DR</strong></h2>
+                <p><strong>The mistake:</strong> Keeping all snapshots in one place.<br /><strong>Fix:</strong> Copy snapshots across Regions (AWS) or select <strong>regional/multi-regional</strong> snapshot locations (GCP). Automate cross-account copies for ransomware blast-radius reduction.</p>
+                <h2><strong>11) Assuming one size fits all consistency</strong></h2>
+                <p><strong>The mistake:</strong> Forcing app-consistent backups everywhere, or the opposite.<br /><strong>Guideline:</strong> Use crash-consistent for fast, frequent points on stateless or tolerant systems; use <strong>app-consistent</strong> for databases and critical state. Azure spells out when crash-consistent is acceptable; AWS DLM+SSM supports app-consistent flows for Windows (VSS) and Linux DBs.</p>
+                <h2><strong>12) No runbook for name, tag, and restore</strong></h2>
+                <p><strong>The mistake:</strong> Random snapshot names and no restore steps.<br /><strong>Fix:</strong> Tag with app, env, volume, and RPO; document restore steps for each app (attach, fsck, mount, pre-warm/FSR, app recovery). Your cloud&rsquo;s snapshot scheduling/backup policy tools can enforce naming and retention.</p>
+                <h2><strong>Fast, sane patterns you can copy</strong></h2>
+                <ul>
+                <li><strong>Windows VMs:</strong> enable <strong>VSS</strong> (Azure Backup, AWS Backup) for application-consistent points.</li>
+                <li><strong>Linux DBs:</strong> pre-freeze: flush/lock (MySQL), or follow the upstream PostgreSQL snapshot guidance; fsfreeze the filesystem; snapshot; unfreeze; unlock. Automate with DLM+SSM where possible.</li>
+                <li><strong>Multi-disk apps:</strong> use <strong>multi-volume</strong> / consistency-group snapshots or machine images instead of single-disk one-offs.</li>
+                <li><strong>Restore speed:</strong> turn on <strong>Fast Snapshot Restore</strong> for hot standbys or critical RTOs; otherwise pre-warm.</li>
+                <li><strong>Cost &amp; retention:</strong> incremental snapshots don&rsquo;t always shrink cost when you delete one&mdash;use lifecycle policies to rotate.</li>
+                <li><strong>Encryption &amp; sharing:</strong> share the <strong>KMS key</strong> with the snapshot; set CMKs/Disk Encryption Sets up front.</li>
+                <li><strong>Don&rsquo;t rely on hypervisor snapshots:</strong> use them temporarily; remove after backup completes.</li>
+                </ul>
+                <h2><strong>A 30-minute checklist</strong></h2>
+                <ol>
+                <li><strong>Map consistency:</strong> crash-consistent vs app-consistent per workload. Note DB hooks.</li>
+                <li><strong>Group disks:</strong> define which volumes must snapshot together.</li>
+                <li><strong>Schedule &amp; retain:</strong> create DLM/snapshot schedules with RPO/RTO and delete windows.</li>
+                <li><strong>Encrypt &amp; share:</strong> confirm key policy grants for any shared or cross-Region copies.</li>
+                <li><strong>Test restore:</strong> rehearse attach + pre-warm/FSR, measure time to steady IOPS.</li>
+                <li><strong>Tag &amp; document:</strong> add restore runbooks and tags for app/env/volume.</li>
+                </ol>
+                <h3><strong>Bottom line</strong></h3>
+                <p>Snapshots work great when you respect consistency, group the right disks, test restores, and automate retention. Do those four and restores get boring&mdash;the way they should be.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+
+     
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+
+
+
+    <!-- ============================================-->
+    <!-- <section> begin ============================-->
+    <section class="pt-0 bg-dark">
+
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col-lg-6 col-sm-12"><a href="index.html"><img class="img-fluid mt-5 mb-4" src="assets/img/Logo.png" alt="" /></a>
+            <p class="w-lg-75 text-gray">Empowering Your Cloud & GPU Journey</p>
+            <p class="text-gray">All rights reserved.</p>
+          </div>
+          <!-- <div class="col-lg-6 col-sm-4 text-right text-white">
+            <h3 class="fw-bold fs-1 mt-5 mb-4 tex">Landings</h3>
+            <ul class="list-unstyled">
+              <li class="my-3 col-md-4"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Products</a></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+          <!-- <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Company</h3>
+            <ul class="list-unstyled">
+              <li class="my-3"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Careers</a><span class="py-1 px-2 rounded-2 bg-success fw-bold text-dark ms-2">Hiring!</span></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Resources</h3>
+            <ul class="list-unstyled">
+              <li class="mb-3"><a href="#">Home</a></li>
+              <li class="mb-3"><a href="#">Products</a></li>
+              <li class="mb-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+        </div>
+        
+      </div>
+      <!-- end of .container-->
+
+    </section>
+    <!-- <section> close ============================-->
+    <!-- ============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="vendors/popper/popper.min.js"></script>
+    <script src="vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="vendors/anchorjs/anchor.min.js"></script>
+    <script src="vendors/is/is.min.js"></script>
+    <script src="vendors/fontawesome/all.min.js"></script>
+    <script src="vendors/lodash/lodash.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+    <script src="vendors/prism/prism.js"></script>
+    <script src="vendors/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
+
+  </body>
+
+</html>
