@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Optimizing Performance While Running Multiple Workloads on a Single GPU</title>
+  <meta name="description" content="Running several tasks on a single GPU? Explore proven strategies to enhance performance, minimize latency, and maximize resource utilization.">
+
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="vendors/prism/prism.css" rel="stylesheet">
+    <link href="vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/theme.css" rel="stylesheet" />
+    <link href="assets/css/user.css" rel="stylesheet" />
+
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container"><a class="navbar-brand" href="index.html"><img src="assets/img/Logo.png" alt="" /></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa-solid fa-bars text-white fs-3"></i></button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 text-uppercase">
+              <li class="nav-item"><a class="nav-link active" aria-current="page" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Cloud</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">GPU</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Compute</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+     
+
+            <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section>
+
+        <div class="container">
+          <div class="border-bottom border-dark py-7">
+            <!-- <h1 class="text-center fs-lg-7 fs-md-4 fs-3 text-dark mb-5">Thoughts and words</h1> -->
+            <div class="row align-items-center gx-xl-7">
+              <div class="col-lg-10 text-center"><a href="#"><img class="img-fluid" src="assets/img/blog/optimizing-performance-while-running-multiple-workloads-on-a-single-gpu.jpg" alt="" /></a></div>
+              <div class="col-lg-12 mt-5 mt-lg-0 text-center text-lg-start">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3"><a href="#">
+                    <p class="fw-bold mb-0 text-black">GPU</p>
+                  </a>
+                  <p class="mb-0">Nov 17, 2025</p>
+                </div><a href="#">
+                  <h1 class="fs-xl-6 fs-md-4 fs-3 my-3">Optimizing Performance While Running Multiple Workloads on a Single GPU</h1>
+                </a>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2"><img class="img-fluid rounded-circle" src="assets/img/blog/profile2.png" alt="" /><p class="mb-0">Daya S</p></div>
+                <p>One GPU, many jobs. Sounds thrifty&mdash;until latency spikes, kernels starve, or memory thrashes. Here&rsquo;s a concrete playbook to squeeze steady throughput from a single device without turning it into a slot machine.</p>
+                <h2><strong>Pick your sharing model first</strong></h2>
+                <p>Before tuning code, decide <strong>how</strong> workloads share the GPU.</p>
+                <ul>
+                <li><strong>Time sharing (default / multiple contexts):</strong> Several processes each own a CUDA context; the driver time-slices work. You can force &ldquo;one process only&rdquo; with Exclusive Process mode if you need determinism.</li>
+                <li><strong>MPS (Multi-Process Service):</strong> A lightweight server lets multiple processes submit work more efficiently to one GPU, reducing context-switch overhead and enabling better overlap. Volta+ adds per-client address spaces and QoS knobs. Use it when many small/medium kernels run concurrently.</li>
+                <li><strong>MIG (Multi-Instance GPU):</strong> Hardware partitions (each with dedicated SMs, L2, and memory paths) give strong isolation and predictable QoS when tenants must not interfere. Great for stable multi-tenant inference.</li>
+                </ul>
+                <p>A quick rule: if you need hard isolation, prefer MIG. If you want cooperative concurrency across processes, try MPS. If one app must own the card, use Exclusive Process.</p>
+                <h2><strong>Get real concurrency inside a process</strong></h2>
+                <p>Don&rsquo;t cram everything into one stream and hope.</p>
+                <ul>
+                <li>Use <strong>multiple CUDA streams</strong> so copies and kernels overlap. Add <strong>events</strong> for precise sync. Stream priorities can help urgent work jump the queue, but they&rsquo;re hints, not hard preemption.</li>
+                <li>For inference stacks like TensorRT, run <strong>parallel streams</strong> and overlap H2D/D2H with compute. That&rsquo;s the baseline for high throughput.</li>
+                </ul>
+                <h2><strong>Reduce launch overhead with CUDA Graphs</strong></h2>
+                <p>Lots of tiny kernels? Launch cost becomes the bottleneck. Capture steady sequences as <strong>CUDA Graphs</strong> and replay them to cut CPU overhead and jitter. Newer releases improved constant-time graph launch further.</p>
+                <h2><strong>Use MPS smartly across processes</strong></h2>
+                <p>If you have many processes, MPS usually beats raw time-slicing.</p>
+                <ul>
+                <li>Start the <strong>MPS control daemon</strong>, then launch clients normally. On Volta+, each client has its own GPU address space and submits directly, improving fairness and lowering overhead.</li>
+                <li>Know the knobs: CUDA_MPS_ACTIVE_THREAD_PERCENTAGE can throttle a chatty client; CUDA_DEVICE_MAX_CONNECTIONS affects how streams map to hardware queues across MPS clients.</li>
+                </ul>
+                <h2><strong>Pack inference workloads the easy way</strong></h2>
+                <p>If you&rsquo;re serving models, let the server do the packing.</p>
+                <ul>
+                <li><strong>NVIDIA Triton Inference Server</strong> can run multiple model instances on one GPU and <strong>dynamically batch</strong> requests to lift throughput while keeping latency within a target window. It&rsquo;s built for &ldquo;many small inferences at once.&rdquo; For more information, read <a href="https://acecloud.ai/blog/high-performance-computing-with-cloud-gpus/">How Cloud GPUs Power High-Performance AI And ML</a>.</li>
+                </ul>
+                <h2><strong>Keep the memory pipeline fed (and sane)</strong></h2>
+                <p>Multiple workloads fight on PCIe and HBM if you don&rsquo;t manage transfers.</p>
+                <ul>
+                <li>Use <strong>pinned (page-locked) host memory</strong> so transfers hit peak bandwidth and can overlap with compute. Batch small copies into larger ones.</li>
+                <li>When overlapping copies with kernels, pinned memory isn&rsquo;t optional; it&rsquo;s how the overlap actually happens.</li>
+                <li>In shared environments, <strong>MIG</strong> prevents a neighbor from stealing your memory bandwidth or cache; time-slicing can&rsquo;t promise that.</li>
+                </ul>
+                <h2><strong>Know how priorities and preemption really behave</strong></h2>
+                <p>Stream priorities help, but they don&rsquo;t interrupt running blocks; they influence what gets scheduled next. Expect improved responsiveness, not instant preemption. Design kernels accordingly.</p>
+                <h2><strong>Tune your math and libraries for &ldquo;many jobs at once&rdquo;</strong></h2>
+                <ul>
+                <li>Favor <strong>batched</strong> or <strong>grouped</strong> GEMMs (cuBLASLt) over launching many tiny GEMMs; fewer launches, better utilization.</li>
+                <li>For TensorRT, run <strong>multiple execution contexts</strong> and streams, pipelining copies and compute. Triton can manage this for you.</li>
+                </ul>
+                <h2><strong>Stabilize clocks when you care about tail latency</strong></h2>
+                <p>On datacenter GPUs you can <strong>lock application clocks</strong> and enable <strong>persistence mode</strong> so power management doesn&rsquo;t yo-yo performance between workloads. Measure first; lock if it reduces variance.</p>
+                <p>&nbsp;</p>
+                <blockquote>
+                <p>Need GPUs for your workloads? <a href="https://acecloud.ai/cloud/gpu/">Rent GPU Cloud Servers for AI/ML On Demand</a> at the lowest prices with highest performance.</p>
+                </blockquote>
+                <h2><strong>Watch what&rsquo;s actually happening (per process)</strong></h2>
+                <p>Install <strong>DCGM / DCGM Exporter</strong> to see utilization, memory, power, and <strong>per-PID stats</strong>. This tells you which workload is noisy and whether MPS/MIG changes helped. It also feeds Prometheus/Grafana or your SaaS monitor.</p>
+                <h2><strong>A practical setup that works</strong></h2>
+                <ol>
+                <li><strong>Decide isolation</strong>: MIG for strict QoS; MPS for cooperative concurrency; Exclusive Process if a single critical app needs clean latency.</li>
+                <li><strong>Inside each app</strong>: multiple streams + events; overlap H2D/D2H with compute; try stream priorities for interactive work.</li>
+                <li><strong>Capture steady loops</strong> with CUDA Graphs. Measure p95 before/after.</li>
+                <li><strong>Inference</strong>: use Triton with multiple instances and dynamic batching. Start with conservative max batch and tighten latency SLOs.</li>
+                <li><strong>Libraries</strong>: switch tiny matmuls to batched/grouped GEMM via cuBLASLt.</li>
+                <li><strong>Clocks</strong>: if tails jitter, try persistence + application clocks on test nodes, then roll wider.</li>
+                <li><strong>Telemetry</strong>: wire DCGM/Exporter; watch per-PID SM%, mem BW, and p95 latency. Keep a weekly &ldquo;top regressions&rdquo; review.</li>
+                </ol>
+                <h2><strong>Common failure patterns and quick fixes</strong></h2>
+                <ul>
+                <li><strong>Lots of processes, low utilization</strong> &rarr; enable <strong>MPS</strong>; many small kernels time-slice poorly without it.</li>
+                <li><strong>Throughput flat with many small requests</strong> &rarr; enable <strong>dynamic batching</strong> or convert to batched ops (cuBLASLt).</li>
+                <li><strong>Latency spikes under mixed load</strong> &rarr; move strict tenants to <strong>MIG</strong> or lock clocks; stream priorities alone won&rsquo;t preempt running work.</li>
+                <li><strong>PCIe becomes the bottleneck</strong> &rarr; use <strong>pinned memory</strong> and overlap copies; batch transfers.</li>
+                </ul>
+                <h2><strong>Quick checklist</strong></h2>
+                <ul>
+                <li>Sharing model chosen: MIG / MPS / Exclusive Process (document why).</li>
+                <li>Streams + events in each app; copies overlap with compute; priorities used where helpful.</li>
+                <li>CUDA Graphs in hot loops.</li>
+                <li>Triton multi-instance + dynamic batching for inference pools.</li>
+                <li>Batched/grouped GEMMs via cuBLASLt for small mats.</li>
+                <li>Persistence + (optional) application clocks validated on canary nodes.</li>
+                <li>DCGM/Exporter running; per-PID dashboards live.</li>
+                </ul>
+                <h3><strong>Bottom line</strong></h3>
+                <p>Multiple workloads on one GPU can be fast and predictable&mdash;if you choose the right sharing model, overlap everything you can, cut launch overhead, and watch per-process behavior. Do that, and a single device starts to feel bigger than it is.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+
+     
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+
+
+
+    <!-- ============================================-->
+    <!-- <section> begin ============================-->
+    <section class="pt-0 bg-dark">
+
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col-lg-6 col-sm-12"><a href="index.html"><img class="img-fluid mt-5 mb-4" src="assets/img/Logo.png" alt="" /></a>
+            <p class="w-lg-75 text-gray">Empowering Your Cloud & GPU Journey</p>
+            <p class="text-gray">All rights reserved.</p>
+          </div>
+          <!-- <div class="col-lg-6 col-sm-4 text-right text-white">
+            <h3 class="fw-bold fs-1 mt-5 mb-4 tex">Landings</h3>
+            <ul class="list-unstyled">
+              <li class="my-3 col-md-4"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Products</a></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+          <!-- <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Company</h3>
+            <ul class="list-unstyled">
+              <li class="my-3"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Careers</a><span class="py-1 px-2 rounded-2 bg-success fw-bold text-dark ms-2">Hiring!</span></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Resources</h3>
+            <ul class="list-unstyled">
+              <li class="mb-3"><a href="#">Home</a></li>
+              <li class="mb-3"><a href="#">Products</a></li>
+              <li class="mb-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+        </div>
+        
+      </div>
+      <!-- end of .container-->
+
+    </section>
+    <!-- <section> close ============================-->
+    <!-- ============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="vendors/popper/popper.min.js"></script>
+    <script src="vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="vendors/anchorjs/anchor.min.js"></script>
+    <script src="vendors/is/is.min.js"></script>
+    <script src="vendors/fontawesome/all.min.js"></script>
+    <script src="vendors/lodash/lodash.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+    <script src="vendors/prism/prism.js"></script>
+    <script src="vendors/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
+
+  </body>
+
+</html>
