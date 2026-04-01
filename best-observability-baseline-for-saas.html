@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Best observability baseline for SaaS on IaaS: logs, metrics, traces, budgets</title>
+  <meta name="description" content="Best observability baseline for SaaS on IaaS: logs, metrics, traces, budgets">
+
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="vendors/prism/prism.css" rel="stylesheet">
+    <link href="vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/theme.css" rel="stylesheet" />
+    <link href="assets/css/user.css" rel="stylesheet" />
+
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container"><a class="navbar-brand" href="index.html"><img src="assets/img/Logo.png" alt="" /></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa-solid fa-bars text-white fs-3"></i></button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 text-uppercase">
+              <li class="nav-item"><a class="nav-link active" aria-current="page" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Cloud</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">GPU</a></li>
+              <li class="nav-item"><a class="nav-link" aria-current="page" href="#">Compute</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+     
+
+            <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section>
+
+        <div class="container">
+          <div class="border-bottom border-dark py-7">
+            <!-- <h1 class="text-center fs-lg-7 fs-md-4 fs-3 text-dark mb-5">Thoughts and words</h1> -->
+            <div class="row align-items-center gx-xl-7">
+              <div class="col-lg-10 text-center"><a href="#"><img class="img-fluid" src="assets/img/blog/cloud-migration.jpg" alt="" /></a></div>
+              <div class="col-lg-12 mt-5 mt-lg-0 text-center text-lg-start">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3"><a href="#">
+                    <p class="fw-bold mb-0 text-black">CLOUD</p>
+                  </a>
+                  <p class="mb-0">March 30, 2026</p>
+                </div><a href="#">
+                  <h1 class="fs-xl-6 fs-md-4 fs-3 my-3">Best observability baseline for SaaS on IaaS: logs, metrics, traces, budgets</h1>
+                </a>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2"><img class="img-fluid rounded-circle" src="assets/img/blog/profile2.png" alt="" /><p class="mb-0">Daya S</p></div>
+                <p>SaaS teams&nbsp;don't&nbsp;lose reliability because they lack dashboards. They lose it because modern systems are too&nbsp;complicated&nbsp;to debug with intuition alone. A single customer action can traverse a CDN, a load balancer, an API gateway, several microservices, a queue, a&nbsp;database&nbsp;and&nbsp;a third-party dependency.</p>
+<p>All&nbsp;of that&nbsp;before the user&nbsp;even&nbsp;sees a spinner stop spinning.&nbsp;Fortunately, that complexity is no longer niche. As your architecture becomes more dynamic, your observability&nbsp;has&nbsp;to&nbsp;become more disciplined.</p>
+<p>Discipline matters because downtime is expensive and so is telemetry.&nbsp;</p>
+<ul>
+<li><a href="https://intelligence.uptimeinstitute.com/resource/annual-outage-analysis-2025#:~:text=The%20*Annual%20Outage%20Analysis%202025*%20report%20analyzes,become%20an%20even%20greater%20cause%20of%20outages**">Uptime Institute</a>&nbsp;found that 54% of respondents said their most recent significant outage cost more than $100,000&nbsp;and&nbsp;16% said it exceeded $1 million.</li>
+</ul>
+<ul>
+<li><a href="https://newrelic.com/resources/report/observability-forecast/2024/state-of-observability/outages-downtime-cost">New Relic</a>&nbsp;reported that 62% said high-business-impact outages cost at least $1 million per hour.</li>
+</ul>
+<p>So,&nbsp;what is the&nbsp;&lsquo;best baseline&rsquo;&nbsp;for&nbsp;<a href="https://acecloud.ai/">SaaS on IaaS</a>? It is the smallest set of signals and practices that lets you answer four questions quickly, every time:&nbsp;</p>
+<ol>
+<li><strong>Is the customer impacted?</strong></li>
+</ol>
+<ol>
+<li><strong>Where is it happening?</strong></li>
+</ol>
+<ol>
+<li><strong>Why is it happening?</strong></li>
+</ol>
+<ol>
+<li><strong>How much should we spend to keep seeing the answer?</strong></li>
+</ol>
+<p>Define the&nbsp;Baseline as a&nbsp;Contract, not a&nbsp;Vendor&nbsp;Choice</p>
+<p>Start by treating observability like an interface every service must implement. Vendors&nbsp;can&nbsp;change. Standards and naming conventions should not.&nbsp;At minimum, every service should emit logs,&nbsp;metrics&nbsp;and&nbsp;traces with consistent identity&nbsp;fields,&nbsp;so you can pivot from an alert to a trace to the exact logs for a single request.</p>
+<p>This is how you reduce the time spent stitching clues together.&nbsp;A baseline &ldquo;telemetry contract&rdquo; usually includes:</p>
+<ul>
+<li><strong>Service identity:</strong>&nbsp;Service name, environment, region, version or build SHA</li>
+</ul>
+<ul>
+<li><strong>Correlation:</strong>&nbsp;A&nbsp;request ID that also maps to a trace ID</li>
+</ul>
+<ul>
+<li><strong>Ownership:</strong>&nbsp;Team name or on-call group for routing</li>
+</ul>
+<ul>
+<li><strong>Tenant context:</strong>&nbsp;A&nbsp;customer or workspace identifier (often hashed), when safe and relevant</li>
+</ul>
+<p>Once the contract is stable, tools become implementation details.</p>
+<p>Metrics:&nbsp;Alert on&nbsp;What&nbsp;Users&nbsp;Feel, not&nbsp;What&nbsp;Machines&nbsp;Report</p>
+<p>Metrics are your early warning system. If your metrics are weak, everything else becomes reactive.</p>
+<p>Use the &ldquo;Four Golden Signals&rdquo; from&nbsp;<a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google&rsquo;s SRE guidance</a>&nbsp;as the backbone: latency, traffic,&nbsp;errors&nbsp;and&nbsp;saturation. These&nbsp;map&nbsp;cleanly to user experience and capacity limits, which is exactly what SaaS teams need to protect.&nbsp;For a practical SaaS baseline, build metrics&nbsp;at&nbsp;two layers.</p>
+<p>1) Service-level indicators (the ones you page on)</p>
+<p>For every API and async pipeline, measure:</p>
+<ul>
+<li><em>Request rate and throughput</em></li>
+</ul>
+<ul>
+<li><em>Error rate (and error budgets, later)</em></li>
+</ul>
+<ul>
+<li><em>Latency distributions (p50, p95, p99)</em></li>
+</ul>
+<ul>
+<li><em>Saturation signals tied to that service, like queue depth, connection pool&nbsp;pressure&nbsp;or&nbsp;thread exhaustion</em></li>
+</ul>
+<p>These metrics allow SLOs, even if you are not ready to formalize them today. SLO adoption is still catching up.&nbsp;Grafana Labs&nbsp;<a href="https://grafana.com/observability-survey/2024/">reported</a>&nbsp;that only 26% of respondents are actively using SLOs in production.&nbsp;A strong baseline makes the eventual move to SLOs far less painful because the raw measurements already exist.</p>
+<p>2) Infrastructure metrics (the ones you investigate, not page on)</p>
+<p>CPU, memory, disk, network, container&nbsp;restarts&nbsp;and&nbsp;node health still matter, especially on IaaS. But alerting directly on infrastructure often generates noise. The better pattern is to alert when infrastructure issues degrade service indicators, then use infrastructure metrics to explain the&nbsp;symptoms.</p>
+<p>Logs:&nbsp;Structure, Scope&nbsp;and&nbsp;Make them&nbsp;Jumpable</p>
+<p>Logs are where human context lives. They&nbsp;answer&nbsp;&ldquo;what happened&rdquo; and &ldquo;what did the system decide,&rdquo; especially during edge cases that&nbsp;don't&nbsp;show up cleanly in metrics.&nbsp;The baseline rule is simple:&nbsp;<strong>logs must be structured and&nbsp;correlatable.</strong></p>
+<p>If a log line cannot be tied back to a request and a service version, it will fail you in the worst moments.&nbsp;A durable logging baseline includes:</p>
+<ul>
+<li>JSON logs with stable fields (timestamp, severity, event name, service, version,&nbsp;request&nbsp;or trace ID)</li>
+</ul>
+<ul>
+<li>Clear separation between business events and operational noise</li>
+</ul>
+<ul>
+<li>Redaction by default for secrets and sensitive payloads</li>
+</ul>
+<ul>
+<li>Intentional retention tiers, so you&nbsp;don't&nbsp;pay premium rates for low-value history</li>
+</ul>
+<p>Cost control is not optional. Teams routinely cite pricing shocks as a top observability pain point. The fastest way to keep log bills sane is to reduce high-cardinality fields that explode indexing&nbsp;and&nbsp;to keep DEBUG logs time-boxed.</p>
+<p>Traces:&nbsp;Instrument the&nbsp;Boundaries and&nbsp;Sample with&nbsp;Purpose</p>
+<p>Traces are what turn &ldquo;we see latency&rdquo; into &ldquo;we know why latency spiked.&rdquo; In distributed SaaS, that usually means&nbsp;identifying&nbsp;which dependency call got slower, which region regressed&nbsp;or&nbsp;which deployment introduced a hot path.&nbsp;Tracing should focus on boundaries:</p>
+<ul>
+<li>Ingress and egress</li>
+</ul>
+<ul>
+<li>Database and cache calls</li>
+</ul>
+<ul>
+<li>Queue&nbsp;publish and consume</li>
+</ul>
+<ul>
+<li>External API calls</li>
+</ul>
+<p>The baseline also needs a sampling strategy that respects budget reality. This is where many teams either under-sample (and gain little value) or over-sample (and pay heavily).</p>
+<p>A strong default is&nbsp;<strong>tail-based&nbsp;sampling</strong>&nbsp;when possible, because it allows you to keep traces based on what happened, not a coin flip at the start.&nbsp;A practical sampling approach for SaaS on IaaS:</p>
+<ul>
+<li>Keep 100% of traces for errors and latency outliers</li>
+</ul>
+<ul>
+<li>Use low sampling for healthy, high-volume endpoints</li>
+</ul>
+<ul>
+<li>Increase sampling during deployments and incidents</li>
+</ul>
+<ul>
+<li>Apply different rates for critical flows like auth and billing</li>
+</ul>
+<p>This is also where open standards pay off. Building your baseline on common standards reduces lock-in and makes tool changes less disruptive.</p>
+<p>Budgets:&nbsp;Combine&nbsp;Error&nbsp;Budgets with&nbsp;Telemetry&nbsp;Budgets</p>
+<p>Most teams talk about observability as if it is purely technical.&nbsp;In reality, it&nbsp;is a business control system. Your baseline is incomplete without budgets.</p>
+<p>1) Error budgets (reliability budget)</p>
+<p>An error budget is the allowed unreliability implied by your SLO. If the service consumes that budget too quickly, you slow risky changes and prioritize stability work. This creates a consistent decision rule that reduces argument-driven incident response.</p>
+<p>2) Telemetry budgets (spend budget)</p>
+<p>Telemetry is a product cost.&nbsp;<a href="https://newrelic.com/sites/default/files/2024-10/new-relic-2024-observability-forecast-report.pdf">New Relic</a>&nbsp;reported a median annual observability spend of $1.95 million across respondents.&nbsp;It also found that organizations with full-stack observability experienced materially better outcomes, including 79% less downtime and 48% lower outage costs.</p>
+<p>That is the trade: spend enough to avoid far larger outage&nbsp;losses but&nbsp;govern the&nbsp;spend,&nbsp;so it stays predictable.</p>
+<p>FinOps practices are increasingly built for this. In the&nbsp;<a href="https://www.finops.org/insights/key-priorities-shift-in-2024/">State of FinOps&nbsp;</a>insights, the FinOps Foundation notes that survey respondents represented $55B in total cloud spend.&nbsp;This&nbsp;with an average annual cloud spend per company of $44M&nbsp;and&nbsp;that priorities have shifted toward reducing waste and managing commitments.</p>
+<p>Your observability baseline should plug into that same discipline, with guardrails like per-environment limits, per-service ingest caps&nbsp;and&nbsp;periodic reviews of high-cost telemetry sources.</p>
+<p>Centralize the&nbsp;Experience,&nbsp;Keep&nbsp;Service&nbsp;Ownership</p>
+<p>The best baseline is the one teams use during an incident at 3 a.m. That means standard dashboards, consistent alert&nbsp;conventions&nbsp;and&nbsp;a single place to pivot across signals, while still letting teams own their services.&nbsp;Centralized observability is associated with real benefits.</p>
+<p>The&nbsp;Best&nbsp;Baseline is&nbsp;Boring on&nbsp;Purpose</p>
+<p>A great observability baseline does not try to collect everything. It tries to collect the right things, in the same way, across every service, so your team can move from symptoms to causes without guesswork.</p>
+<p>Containers and cloud-native patterns have made systems larger and more dynamic. Outages&nbsp;remain&nbsp;costly at both the enterprise and service level. Observability can deliver measurable value, but only when it is implemented as a disciplined foundation rather than a pile of tools.</p>
+<p>If you are&nbsp;<a href="https://acecloud.ai/">building SaaS on IaaS</a>, aim for a baseline that is repeatable:</p>
+<ul>
+<li><em>Metrics anchored to user experience and saturation</em></li>
+</ul>
+<ul>
+<li><em>Structured logs that are safe,&nbsp;searchable&nbsp;and&nbsp;tied to traces</em></li>
+</ul>
+<ul>
+<li><em>Tracing focused on boundaries with intentional sampling</em></li>
+</ul>
+<ul>
+<li><em>Budgeting that aligns reliability goals with telemetry spend</em></li>
+</ul>
+<p>Do that well&nbsp;and&nbsp;you get the rare kind of engineering&nbsp;win&nbsp;that compounds. Incidents shrink, deploys become less&nbsp;scary&nbsp;and&nbsp;costs become predictable, all because your systems finally tell you the truth in a language your team can understand.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+
+     
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+
+
+
+    <!-- ============================================-->
+    <!-- <section> begin ============================-->
+    <section class="pt-0 bg-dark">
+
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col-lg-6 col-sm-12"><a href="index.html"><img class="img-fluid mt-5 mb-4" src="assets/img/Logo.png" alt="" /></a>
+            <p class="w-lg-75 text-gray">Empowering Your Cloud & GPU Journey</p>
+            <p class="text-gray">All rights reserved.</p>
+          </div>
+          <!-- <div class="col-lg-6 col-sm-4 text-right text-white">
+            <h3 class="fw-bold fs-1 mt-5 mb-4 tex">Landings</h3>
+            <ul class="list-unstyled">
+              <li class="my-3 col-md-4"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Products</a></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+          <!-- <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Company</h3>
+            <ul class="list-unstyled">
+              <li class="my-3"><a href="#">Home</a></li>
+              <li class="my-3"><a href="#">Careers</a><span class="py-1 px-2 rounded-2 bg-success fw-bold text-dark ms-2">Hiring!</span></li>
+              <li class="my-3"><a href="#">Services</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-sm-4">
+            <h3 class="fw-bold fs-1 mt-5 mb-4">Resources</h3>
+            <ul class="list-unstyled">
+              <li class="mb-3"><a href="#">Home</a></li>
+              <li class="mb-3"><a href="#">Products</a></li>
+              <li class="mb-3"><a href="#">Services</a></li>
+            </ul>
+          </div> -->
+        </div>
+        
+      </div>
+      <!-- end of .container-->
+
+    </section>
+    <!-- <section> close ============================-->
+    <!-- ============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="vendors/popper/popper.min.js"></script>
+    <script src="vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="vendors/anchorjs/anchor.min.js"></script>
+    <script src="vendors/is/is.min.js"></script>
+    <script src="vendors/fontawesome/all.min.js"></script>
+    <script src="vendors/lodash/lodash.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+    <script src="vendors/prism/prism.js"></script>
+    <script src="vendors/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
+
+  </body>
+
+</html>
